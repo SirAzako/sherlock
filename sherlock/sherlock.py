@@ -13,6 +13,7 @@ import os
 import platform
 import re
 import sys
+import tweepy
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from time import monotonic
 
@@ -511,6 +512,10 @@ def main():
                         action="store_true", dest="xlsx", default=False,
                         help="Create the standard file for the modern Microsoft Excel spreadsheet (xslx)."
                         )
+    parser.add_argument("--tweet",
+                        action="store_true", dest="tweet", default=False,
+                        help="Post results to twitter."
+                        )
     parser.add_argument("--site",
                         action="append", metavar="SITE_NAME",
                         dest="site_list", default=None,
@@ -731,8 +736,36 @@ def main():
             http_status = []
             response_time_s = []
 
-    
-        
+        if args.tweet:
+            # TODO READ KEYS
+            with open(f'{username}.txt', 'r') as file:
+                for line in file:
+                    pass
+                last_line = line
+
+            twitter_auth_keys = {
+                "consumer_key": "-",
+                "consumer_secret": "-",
+                "access_token": "-",
+                "access_token_secret": "-"
+            }
+
+            auth = tweepy.OAuthHandler(
+                twitter_auth_keys['consumer_key'],
+                twitter_auth_keys['consumer_secret']
+            )
+            auth.set_access_token(
+                twitter_auth_keys['access_token'],
+                twitter_auth_keys['access_token_secret']
+            )
+            api = tweepy.API(auth)
+            print(f'Data: {line}')
+            tweet = f'{username} - {line}'
+            status = api.update_status(status=tweet)
+
+
+
+
             for site in results:
 
                 if response_time_s is None:
@@ -745,11 +778,11 @@ def main():
                 url_user.append(results[site]["url_user"])
                 exists.append(str(results[site]["status"].status))
                 http_status.append(results[site]["http_status"])
-            
+
             DataFrame=pd.DataFrame({"username":usernames , "name":names , "url_main":url_main , "url_user":url_user , "exists" : exists , "http_status":http_status , "response_time_s":response_time_s})
             DataFrame.to_excel(f'{username}.xlsx', sheet_name='sheet1', index=False)
 
-                                    
+
 
         print()
     query_notify.finish()
